@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    exportOptions.plist — driven by build-distribution.sh.
+
+    `developer-id` produces an app signed for distribution outside the
+    Mac App Store. `automatic` signing lets Xcode select the matching
+    Developer ID Application certificate from the login keychain. No team ID
+    is hard-coded here, so the file is safe to commit.
+-->
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>developer-id</string>
+
+    <key>signingStyle</key>
+    <string>automatic</string>
+</dict>
+</plist>
