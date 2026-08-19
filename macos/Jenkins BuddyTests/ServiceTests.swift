@@ -263,12 +263,10 @@ struct ServiceTests {
         settings.update {
             $0.language = .german
             $0.jenkins.serverURL = "https://example.com"
-            $0.jobDetailViewMode = .card
         }
         let restored = AppSettings(storage: storage, storageKey: "test")
         #expect(restored.state.language == .german)
         #expect(restored.resolvedLanguage == .german)
-        #expect(restored.state.jobDetailViewMode == .card)
         var replacement = AppSettingsState()
         replacement.language = .japanese
         restored.replace(with: replacement)
@@ -322,12 +320,14 @@ struct ServiceTests {
         defer { try? FileManager.default.removeItem(at: directory) }
         let store = SQLiteAppStateStore(path: directory.appending(path: "state.sqlite").path)
         #expect(try await store.load() == .initial)
-        let tab = AppTab.job(title: "mobile", url: Samples.jobURL)
+        var tab = AppTab.job(title: "mobile", url: Samples.jobURL)
+        tab.jobDetailViewMode = .card
         let state = AppSessionState(tabs: [tab], selectedTabID: tab.id)
         try await store.save(state)
         let restored = try await store.load()
         #expect(restored.tabs == [.jobs, tab])
         #expect(restored.selectedTabID == tab.id)
+        #expect(restored.tabs.last?.jobDetailViewMode == .card)
 
         let memory: any AppStateStore = MemoryAppStateStore(state: state)
         #expect(try await memory.load() == state)

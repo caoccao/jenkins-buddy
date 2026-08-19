@@ -16,15 +16,6 @@ enum AppLayout {
 }
 
 enum UIConstants {
-    enum Jobs {
-        /// Horizontal inset for the job-search control.
-        static let searchHorizontalPadding: CGFloat = 12
-        /// Horizontal gap between the search symbol and text field.
-        static let searchSpacing: CGFloat = 8
-        /// Fixed height of the job-search bar above a populated tree.
-        static let searchBarHeight: CGFloat = 36
-    }
-
     enum Toolbar {
         /// Horizontal gap between toolbar controls.
         static let controlSpacing: CGFloat = 10
@@ -32,6 +23,10 @@ enum UIConstants {
         static let horizontalPadding: CGFloat = 12
         /// Fixed height of the in-window toolbar.
         static let height: CGFloat = 36
+        /// Height of the separator between refresh and tab-specific controls.
+        static let dividerHeight: CGFloat = 18
+        /// Horizontal gap between the search symbol, field, and progress indicator.
+        static let searchSpacing: CGFloat = 6
         /// Gap between the detail and card view buttons.
         static let viewModeSpacing: CGFloat = 2
         /// Square hit target used by each view-mode button.

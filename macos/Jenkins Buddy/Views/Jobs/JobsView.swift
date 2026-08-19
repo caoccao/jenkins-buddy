@@ -3,7 +3,6 @@ import SwiftUI
 struct JobsView: View {
     let jobs: [JenkinsJob]
     let isLoading: Bool
-    let isLoadingSearch: Bool
     let isConfigured: Bool
     let viewModel: JobsViewModel
     let strings: AppStrings
@@ -14,20 +13,15 @@ struct JobsView: View {
     let onRetry: () -> Void
 
     var body: some View {
-        @Bindable var viewModel = viewModel
         Group {
             if showsJobBrowser {
-                VStack(spacing: 0) {
-                    searchBar(searchText: $viewModel.searchText)
-                    JobsTreeView(
-                        jobs: viewModel.filteredJobs(jobs),
-                        expandContainers: viewModel.isSearching,
-                        strings: strings,
-                        onOpen: onOpen,
-                        onExpand: onExpand
-                    )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
+                JobsTreeView(
+                    jobs: viewModel.filteredJobs(jobs),
+                    expandContainers: viewModel.isSearching,
+                    strings: strings,
+                    onOpen: onOpen,
+                    onExpand: onExpand
+                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             } else {
                 stateContent
@@ -68,23 +62,5 @@ struct JobsView: View {
                 Button(strings[.retry], action: onRetry)
             }
         }
-    }
-
-    private func searchBar(searchText: Binding<String>) -> some View {
-        HStack(spacing: UIConstants.Jobs.searchSpacing) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-            TextField(strings[.searchJobs], text: searchText)
-                .textFieldStyle(.plain)
-                .accessibilityIdentifier("job-search")
-            if isLoadingSearch {
-                ProgressView()
-                    .controlSize(.small)
-            }
-        }
-        .padding(.horizontal, UIConstants.Jobs.searchHorizontalPadding)
-        .frame(height: UIConstants.Jobs.searchBarHeight)
-        .background(.bar)
-        .overlay(alignment: .bottom) { Divider() }
     }
 }

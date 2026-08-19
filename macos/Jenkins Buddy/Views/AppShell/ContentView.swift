@@ -8,24 +8,29 @@ struct ContentView: View {
     var body: some View {
         let strings = AppStrings(language: viewModel.settings.resolvedLanguage)
         VStack(spacing: 0) {
-            AppToolbar(
-                isRefreshing: viewModel.isLoadingJobs,
-                jobURL: viewModel.selectedTab.jobURL,
-                jobDetailViewMode: viewModel.settings.state.jobDetailViewMode,
-                strings: strings,
-                onRefresh: { Task { await viewModel.refreshSelected() } },
-                onJobDetailViewModeChange: { mode in
-                    viewModel.settings.update { $0.jobDetailViewMode = mode }
-                },
-                onSettings: { SettingsWindowRoute.open(using: openWindow) }
-            )
             TabsBar(
                 tabs: viewModel.openTabs,
                 selectedTabID: viewModel.tabCollection.selectedTabID,
                 statuses: viewModel.snapshots.mapValues(\.status),
                 strings: strings,
                 onSelect: { id in Task { await viewModel.select(tabID: id) } },
-                onClose: { id in Task { await viewModel.close(tabID: id) } }
+                onClose: { id in Task { await viewModel.close(tabID: id) } },
+                onMove: { id, targetID in
+                    Task { await viewModel.move(tabID: id, to: targetID) }
+                }
+            )
+            TabToolbar(
+                isRefreshing: viewModel.isRefreshingSelectedTab,
+                showsViewModeControls: viewModel.selectedTab.kind == .job,
+                searchText: searchBinding,
+                isLoadingSearch: viewModel.isLoadingSearch,
+                jobDetailViewMode: viewModel.selectedTab.jobDetailViewMode,
+                strings: strings,
+                onRefresh: { Task { await viewModel.refreshSelected() } },
+                onJobDetailViewModeChange: { mode in
+                    let tabID = viewModel.selectedTab.id
+                    Task { await viewModel.setJobDetailViewMode(mode, for: tabID) }
+                }
             )
 
             selectedContent(strings: strings)
@@ -41,6 +46,18 @@ struct ContentView: View {
             minWidth: AppLayout.minimumWindowWidth,
             minHeight: AppLayout.minimumWindowHeight
         )
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    SettingsWindowRoute.open(using: openWindow)
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .help(strings[.settings])
+                .accessibilityLabel(strings[.settings])
+                .accessibilityIdentifier("settings-button")
+            }
+        }
         .environment(\.locale, viewModel.settings.resolvedLanguage.locale)
         .task { await viewModel.start() }
         .onDisappear { viewModel.stop() }
@@ -65,7 +82,6 @@ struct ContentView: View {
             JobsView(
                 jobs: viewModel.jobs,
                 isLoading: viewModel.isLoadingJobs,
-                isLoadingSearch: viewModel.isLoadingSearch,
                 isConfigured: viewModel.connectionState != .notConfigured,
                 viewModel: viewModel.jobsViewModel,
                 strings: strings,
@@ -79,10 +95,18 @@ struct ContentView: View {
             JobDetailView(
                 tab: tab,
                 snapshot: tab.jobURL.flatMap { viewModel.snapshots[$0] },
-                viewMode: viewModel.settings.state.jobDetailViewMode,
+                viewMode: tab.jobDetailViewMode,
                 strings: strings,
                 onRetry: { Task { await viewModel.refreshSelected() } }
             )
         }
+    }
+
+    private var searchBinding: Binding<String>? {
+        guard viewModel.selectedTab.kind == .jobs else { return nil }
+        return Binding(
+            get: { viewModel.jobsViewModel.searchText },
+            set: { viewModel.jobsViewModel.searchText = $0 }
+        )
     }
 }

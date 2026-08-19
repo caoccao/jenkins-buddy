@@ -17,6 +17,7 @@ final class AppViewModel {
     private(set) var connectionState = ConnectionState.notConfigured
     private(set) var isLoadingJobs = false
     private(set) var isLoadingSearch = false
+    private(set) var refreshingJobURLs = Set<URL>()
 
     let jobsViewModel = JobsViewModel()
     let settings: AppSettings
@@ -47,6 +48,10 @@ final class AppViewModel {
 
     var selectedTab: AppTab { tabCollection.selectedTab }
     var openTabs: [AppTab] { tabCollection.tabs }
+    var isRefreshingSelectedTab: Bool {
+        guard let jobURL = selectedTab.jobURL else { return isLoadingJobs }
+        return refreshingJobURLs.contains(jobURL)
+    }
 
     func start() async {
         if let restored = try? await stateStore.load() {
@@ -148,6 +153,16 @@ final class AppViewModel {
         await updateMonitorScope()
     }
 
+    func setJobDetailViewMode(_ mode: JobDetailViewMode, for tabID: UUID) async {
+        tabCollection.setJobDetailViewMode(mode, for: tabID)
+        await persistTabs()
+    }
+
+    func move(tabID: UUID, to targetID: UUID) async {
+        tabCollection.move(tabID, to: targetID)
+        await persistTabs()
+    }
+
     func refreshSelected() async {
         if let url = selectedTab.jobURL {
             _ = await refresh(jobURL: url)
@@ -177,6 +192,7 @@ final class AppViewModel {
         tabCollection = TabCollection()
         jobs = []
         snapshots = [:]
+        refreshingJobURLs = []
         loadedContainerURLs = []
         connectionState = .loading
         await monitor.reset()
@@ -206,6 +222,8 @@ final class AppViewModel {
     @discardableResult
     private func refresh(jobURL: URL) async -> Bool {
         guard let connection = connection() else { return false }
+        refreshingJobURLs.insert(jobURL)
+        defer { refreshingJobURLs.remove(jobURL) }
         do {
             let snapshot = try await jenkins.fetchJob(url: jobURL, connection: connection)
             guard JenkinsResourceIdentity.matches(jobURL, snapshot.url) else {

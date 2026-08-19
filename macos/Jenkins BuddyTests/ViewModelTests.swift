@@ -135,6 +135,42 @@ struct ViewModelTests {
         viewModel.stop()
     }
 
+    @Test("App persists per-tab view modes and dragged job order")
+    func appTabPreferencesAndOrder() async {
+        let first = Samples.job()
+        let second = Samples.job(name: "backend", url: Samples.secondJobURL)
+        let store = MemoryAppStateStore()
+        let viewModel = AppViewModel(
+            settings: configuredSettings(),
+            credentials: MemoryCredentialStore(token: "secret"),
+            jenkins: StubJenkinsService(
+                jobsResult: .success([first, second]),
+                snapshots: [
+                    first.url: .success(Samples.snapshot()),
+                    second.url: .success(Samples.snapshot(name: "backend", url: second.url))
+                ]
+            ),
+            notifications: MemoryNotificationService(),
+            stateStore: store
+        )
+
+        await viewModel.refreshJobs()
+        await viewModel.open(first)
+        let firstID = viewModel.selectedTab.id
+        await viewModel.open(second)
+        let secondID = viewModel.selectedTab.id
+        await viewModel.setJobDetailViewMode(.card, for: firstID)
+        await viewModel.move(tabID: firstID, to: secondID)
+
+        #expect(viewModel.openTabs.compactMap(\.jobURL) == [second.url, first.url])
+        #expect(viewModel.openTabs.first { $0.id == firstID }?.jobDetailViewMode == .card)
+        #expect(!viewModel.isRefreshingSelectedTab)
+        let persisted = await store.load()
+        #expect(persisted.tabs.compactMap(\.jobURL) == [second.url, first.url])
+        #expect(persisted.tabs.first { $0.id == firstID }?.jobDetailViewMode == .card)
+        viewModel.stop()
+    }
+
     @Test("App records a silent baseline then delivers selected events")
     func appNotifications() async throws {
         let settings = configuredSettings()

@@ -1,12 +1,5 @@
 import Foundation
 
-nonisolated enum JobDetailViewMode: String, Codable, CaseIterable, Identifiable, Sendable {
-    case detail
-    case card
-
-    var id: String { rawValue }
-}
-
 nonisolated struct JenkinsSettings: Codable, Equatable, Sendable {
     var serverURL = ""
     var username = ""
@@ -54,7 +47,6 @@ nonisolated struct AppSettingsState: Codable, Equatable, Sendable {
     var language = AppLanguage.english
     var jenkins = JenkinsSettings()
     var notifications = NotificationSettings()
-    var jobDetailViewMode = JobDetailViewMode.detail
 
     init() {}
 
@@ -63,6 +55,5 @@ nonisolated struct AppSettingsState: Codable, Equatable, Sendable {
         language = try container.decodeIfPresent(AppLanguage.self, forKey: .language) ?? .english
         jenkins = try container.decodeIfPresent(JenkinsSettings.self, forKey: .jenkins) ?? JenkinsSettings()
         notifications = try container.decodeIfPresent(NotificationSettings.self, forKey: .notifications) ?? NotificationSettings()
-        jobDetailViewMode = try container.decodeIfPresent(JobDetailViewMode.self, forKey: .jobDetailViewMode) ?? .detail
     }
 }

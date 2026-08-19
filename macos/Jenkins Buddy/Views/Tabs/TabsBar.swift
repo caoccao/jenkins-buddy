@@ -7,6 +7,7 @@ struct TabsBar: View {
     let strings: AppStrings
     let onSelect: (UUID) -> Void
     let onClose: (UUID) -> Void
+    let onMove: (UUID, UUID) -> Void
 
     var body: some View {
         ScrollView(.horizontal) {
@@ -24,7 +25,28 @@ struct TabsBar: View {
         .accessibilityIdentifier("tabs-bar")
     }
 
+    @ViewBuilder
     private func tabButton(_ tab: AppTab) -> some View {
+        if tab.kind == .job {
+            tabSurface(tab)
+                .draggable(tab.id.uuidString)
+                .dropDestination(for: String.self) { identifiers, _ in
+                    guard let identifier = identifiers.first,
+                          let draggedID = UUID(uuidString: identifier),
+                          draggedID != AppTab.jobsID,
+                          draggedID != tab.id,
+                          tabs.contains(where: { $0.id == draggedID }) else {
+                        return false
+                    }
+                    onMove(draggedID, tab.id)
+                    return true
+                }
+        } else {
+            tabSurface(tab)
+        }
+    }
+
+    private func tabSurface(_ tab: AppTab) -> some View {
         let isSelected = tab.id == selectedTabID
         return HStack(spacing: 7) {
             if tab.kind == .jobs {

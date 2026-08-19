@@ -58,22 +58,22 @@ struct ViewRenderingTests {
         let jobsViewModel = JobsViewModel()
         let variants = [
             JobsView(
-                jobs: [], isLoading: false, isLoadingSearch: false, isConfigured: false,
+                jobs: [], isLoading: false, isConfigured: false,
                 viewModel: jobsViewModel, strings: strings, onOpen: { _ in }, onExpand: { _ in },
                 onSearch: {}, onSettings: {}, onRetry: {}
             ),
             JobsView(
-                jobs: [], isLoading: true, isLoadingSearch: false, isConfigured: true,
+                jobs: [], isLoading: true, isConfigured: true,
                 viewModel: jobsViewModel, strings: strings, onOpen: { _ in }, onExpand: { _ in },
                 onSearch: {}, onSettings: {}, onRetry: {}
             ),
             JobsView(
-                jobs: [], isLoading: false, isLoadingSearch: false, isConfigured: true,
+                jobs: [], isLoading: false, isConfigured: true,
                 viewModel: jobsViewModel, strings: strings, onOpen: { _ in }, onExpand: { _ in },
                 onSearch: {}, onSettings: {}, onRetry: {}
             ),
             JobsView(
-                jobs: [Samples.job()], isLoading: false, isLoadingSearch: true, isConfigured: true,
+                jobs: [Samples.job()], isLoading: false, isConfigured: true,
                 viewModel: jobsViewModel, strings: strings, onOpen: { _ in }, onExpand: { _ in },
                 onSearch: {}, onSettings: {}, onRetry: {}
             )
@@ -241,32 +241,35 @@ struct ViewRenderingTests {
             statuses: [Samples.jobURL: .failure],
             strings: AppStrings(language: .english),
             onSelect: { _ in },
-            onClose: { _ in }
+            onClose: { _ in },
+            onMove: { _, _ in }
         )
         _ = view.body
         render(view, width: 500, height: 50)
     }
 
-    @Test("Toolbar renders refresh, Jenkins, and Settings actions")
+    @Test("Tab toolbars render Jobs and job controls")
     func toolbar() {
         let strings = AppStrings(language: .english)
-        let jobToolbar = AppToolbar(
+        let jobToolbar = TabToolbar(
             isRefreshing: true,
-            jobURL: Samples.jobURL,
+            showsViewModeControls: true,
+            searchText: nil,
+            isLoadingSearch: false,
             jobDetailViewMode: .detail,
             strings: strings,
             onRefresh: {},
-            onJobDetailViewModeChange: { _ in },
-            onSettings: {}
+            onJobDetailViewModeChange: { _ in }
         )
-        let jobsToolbar = AppToolbar(
+        let jobsToolbar = TabToolbar(
             isRefreshing: false,
-            jobURL: nil,
+            showsViewModeControls: false,
+            searchText: .constant("mobile"),
+            isLoadingSearch: true,
             jobDetailViewMode: .card,
             strings: strings,
             onRefresh: {},
-            onJobDetailViewModeChange: { _ in },
-            onSettings: {}
+            onJobDetailViewModeChange: { _ in }
         )
         _ = jobToolbar.body
         _ = jobsToolbar.body

@@ -185,13 +185,6 @@ struct ModelTests {
         #expect(state.jenkins.refreshInterval == 30)
         #expect(!state.notifications.buildFailed)
         #expect(state.notifications.playSound)
-        #expect(state.jobDetailViewMode == .detail)
-
-        let cardState = try JSONDecoder().decode(
-            AppSettingsState.self,
-            from: Data(#"{"jobDetailViewMode":"card"}"#.utf8)
-        )
-        #expect(cardState.jobDetailViewMode == .card)
         #expect(JobDetailViewMode.allCases.map(\.rawValue) == ["detail", "card"])
     }
 
@@ -207,6 +200,14 @@ struct ModelTests {
 
         let selected = AppSessionState(tabs: [.jobs, duplicateA], selectedTabID: duplicateA.id).normalized()
         #expect(selected.selectedTabID == duplicateA.id)
+
+        let legacyTabData = Data(
+            """
+            {"id":"\(duplicateA.id.uuidString)","kind":"job","title":"A","jobURL":"\(Samples.jobURL.absoluteString)"}
+            """.utf8
+        )
+        let legacyTab = try? JSONDecoder().decode(AppTab.self, from: legacyTabData)
+        #expect(legacyTab?.jobDetailViewMode == .detail)
     }
 
     @Test("Tabs deduplicate, select, and close predictably")
@@ -233,5 +234,31 @@ struct ModelTests {
         _ = unselectedClose.open(job: second)
         unselectedClose.close(a)
         #expect(unselectedClose.selectedTab.jobURL == Samples.secondJobURL)
+    }
+
+    @Test("Job tabs persist individual view modes and reorder behind Jobs")
+    func tabPreferencesAndReordering() throws {
+        var tabs = TabCollection()
+        let firstID = tabs.open(job: Samples.job())
+        let secondID = tabs.open(job: Samples.job(name: "backend", url: Samples.secondJobURL))
+        let thirdURL = Samples.url("https://jenkins.example.com/jenkins/job/desktop/")
+        let thirdID = tabs.open(job: Samples.job(name: "desktop", url: thirdURL))
+
+        tabs.setJobDetailViewMode(.card, for: firstID)
+        tabs.setJobDetailViewMode(.card, for: AppTab.jobsID)
+        #expect(tabs.tabs.first { $0.id == firstID }?.jobDetailViewMode == .card)
+        #expect(tabs.tabs.first?.jobDetailViewMode == .detail)
+
+        tabs.move(firstID, to: thirdID)
+        #expect(tabs.tabs.compactMap(\.jobURL) == [Samples.secondJobURL, thirdURL, Samples.jobURL])
+        tabs.move(firstID, to: secondID)
+        #expect(tabs.tabs.compactMap(\.jobURL) == [Samples.jobURL, Samples.secondJobURL, thirdURL])
+        tabs.move(AppTab.jobsID, to: thirdID)
+        tabs.move(secondID, to: AppTab.jobsID)
+        #expect(tabs.tabs.first == .jobs)
+
+        let data = try JSONEncoder().encode(tabs.state)
+        let restored = try JSONDecoder().decode(AppSessionState.self, from: data).normalized()
+        #expect(restored.tabs.first { $0.id == firstID }?.jobDetailViewMode == .card)
     }
 }

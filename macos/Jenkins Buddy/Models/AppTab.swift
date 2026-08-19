@@ -1,5 +1,12 @@
 import Foundation
 
+nonisolated enum JobDetailViewMode: String, Codable, CaseIterable, Identifiable, Sendable {
+    case detail
+    case card
+
+    var id: String { rawValue }
+}
+
 nonisolated struct AppTab: Identifiable, Codable, Equatable, Sendable {
     enum Kind: String, Codable, Sendable {
         case jobs
@@ -12,6 +19,33 @@ nonisolated struct AppTab: Identifiable, Codable, Equatable, Sendable {
     let kind: Kind
     var title: String
     var jobURL: URL?
+    var jobDetailViewMode: JobDetailViewMode
+
+    init(
+        id: UUID,
+        kind: Kind,
+        title: String,
+        jobURL: URL?,
+        jobDetailViewMode: JobDetailViewMode = .detail
+    ) {
+        self.id = id
+        self.kind = kind
+        self.title = title
+        self.jobURL = jobURL
+        self.jobDetailViewMode = jobDetailViewMode
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        kind = try container.decode(Kind.self, forKey: .kind)
+        title = try container.decode(String.self, forKey: .title)
+        jobURL = try container.decodeIfPresent(URL.self, forKey: .jobURL)
+        jobDetailViewMode = try container.decodeIfPresent(
+            JobDetailViewMode.self,
+            forKey: .jobDetailViewMode
+        ) ?? .detail
+    }
 
     static var jobs: AppTab {
         AppTab(id: jobsID, kind: .jobs, title: "Jobs", jobURL: nil)

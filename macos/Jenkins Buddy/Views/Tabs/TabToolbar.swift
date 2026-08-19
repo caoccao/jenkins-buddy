@@ -1,14 +1,15 @@
-import AppKit
 import SwiftUI
 
-struct AppToolbar: View {
+struct TabToolbar: View {
     let isRefreshing: Bool
-    let jobURL: URL?
+    let showsViewModeControls: Bool
+    let searchText: Binding<String>?
+    let isLoadingSearch: Bool
     let jobDetailViewMode: JobDetailViewMode
     let strings: AppStrings
     let onRefresh: () -> Void
     let onJobDetailViewModeChange: (JobDetailViewMode) -> Void
-    let onSettings: () -> Void
+    @FocusState private var isSearchFocused: Bool
 
     var body: some View {
         HStack(spacing: UIConstants.Toolbar.controlSpacing) {
@@ -21,45 +22,55 @@ struct AppToolbar: View {
             .accessibilityLabel(strings[.refresh])
             .accessibilityIdentifier("refresh-button")
 
-            Spacer()
+            Divider()
+                .frame(height: UIConstants.Toolbar.dividerHeight)
 
-            if let jobURL {
-                HStack(spacing: UIConstants.Toolbar.viewModeSpacing) {
-                    viewModeButton(
-                        .detail,
-                        systemImage: "list.bullet.rectangle",
-                        label: strings[.detailView]
-                    )
-                    viewModeButton(
-                        .card,
-                        systemImage: "rectangle.grid.2x2",
-                        label: strings[.cardView]
-                    )
+            if let searchText {
+                searchControls(searchText)
+            } else {
+                if showsViewModeControls {
+                    HStack(spacing: UIConstants.Toolbar.viewModeSpacing) {
+                        viewModeButton(
+                            .detail,
+                            systemImage: "list.bullet.rectangle",
+                            label: strings[.detailView]
+                        )
+                        viewModeButton(
+                            .card,
+                            systemImage: "rectangle.grid.2x2",
+                            label: strings[.cardView]
+                        )
+                    }
                 }
 
-                Button {
-                    NSWorkspace.shared.open(jobURL)
-                } label: {
-                    Image(systemName: "safari")
-                }
-                .buttonStyle(.borderless)
-                .help(strings[.openInJenkins])
-                .accessibilityLabel(strings[.openInJenkins])
-                .accessibilityIdentifier("open-in-jenkins-button")
+                Spacer()
             }
-
-            Button(action: onSettings) {
-                Image(systemName: "gearshape")
-            }
-            .buttonStyle(.borderless)
-            .help(strings[.settings])
-            .accessibilityLabel(strings[.settings])
-            .accessibilityIdentifier("settings-button")
         }
         .padding(.horizontal, UIConstants.Toolbar.horizontalPadding)
         .frame(height: UIConstants.Toolbar.height)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(.bar)
         .overlay(alignment: .bottom) { Divider() }
+    }
+
+    private func searchControls(_ searchText: Binding<String>) -> some View {
+        HStack(spacing: UIConstants.Toolbar.searchSpacing) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            TextField(strings[.searchJobs], text: searchText)
+                .textFieldStyle(.roundedBorder)
+                .focused($isSearchFocused)
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("job-search")
+            if isLoadingSearch {
+                ProgressView()
+                    .controlSize(.small)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .task {
+            await Task.yield()
+            isSearchFocused = false
+        }
     }
 
     private func viewModeButton(

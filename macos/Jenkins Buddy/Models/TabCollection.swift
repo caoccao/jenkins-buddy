@@ -46,4 +46,23 @@ nonisolated struct TabCollection: Equatable, Sendable {
             selectedTabID = tabs[max(0, index - 1)].id
         }
     }
+
+    mutating func setJobDetailViewMode(_ mode: JobDetailViewMode, for id: UUID) {
+        guard let index = tabs.firstIndex(where: { $0.id == id }), tabs[index].kind == .job else {
+            return
+        }
+        tabs[index].jobDetailViewMode = mode
+    }
+
+    mutating func move(_ id: UUID, to targetID: UUID) {
+        guard id != AppTab.jobsID,
+              targetID != AppTab.jobsID,
+              id != targetID,
+              let sourceIndex = tabs.firstIndex(where: { $0.id == id }),
+              let originalTargetIndex = tabs.firstIndex(where: { $0.id == targetID }) else {
+            return
+        }
+        let tab = tabs.remove(at: sourceIndex)
+        tabs.insert(tab, at: originalTargetIndex)
+    }
 }
