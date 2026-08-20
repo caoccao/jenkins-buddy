@@ -16,6 +16,15 @@ nonisolated enum ForegroundNotificationPresentation {
     static var options: UNNotificationPresentationOptions { [.banner, .sound] }
 }
 
+enum RunningApplicationActivation {
+    static func bringToFront(_ application: NSApplication) {
+        for window in application.windows where window.isMiniaturized {
+            window.deminiaturize(nil)
+        }
+        application.activate(ignoringOtherApps: true)
+    }
+}
+
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -44,7 +53,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             completionHandler()
             Task { @MainActor in
                 AppEventBus.openJob(event)
-                NSApp.activate(ignoringOtherApps: true)
+                RunningApplicationActivation.bringToFront(NSApp)
             }
         } else {
             completionHandler()

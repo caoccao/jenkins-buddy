@@ -28,8 +28,25 @@
 		A10000000000000000000032 /* Jenkins BuddyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Jenkins BuddyUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A10000000000000000000043 /* Exceptions for "Jenkins Buddy" folder in "Jenkins Buddy" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = A10000000000000000000020 /* Jenkins Buddy */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A10000000000000000000040 /* Jenkins Buddy */ = {isa = PBXFileSystemSynchronizedRootGroup; path = "Jenkins Buddy"; sourceTree = "<group>"; };
+		A10000000000000000000040 /* Jenkins Buddy */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A10000000000000000000043 /* Exceptions for "Jenkins Buddy" folder in "Jenkins Buddy" target */,
+			);
+			path = "Jenkins Buddy";
+			sourceTree = "<group>";
+		};
 		A10000000000000000000041 /* Jenkins BuddyTests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = "Jenkins BuddyTests"; sourceTree = "<group>"; };
 		A10000000000000000000042 /* Jenkins BuddyUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = "Jenkins BuddyUITests"; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -236,8 +253,8 @@
 				ENABLE_APP_INTENTS_METADATA_PROCESSING = NO;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Jenkins Buddy/Info.plist";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.caoccao.Jenkins-Buddy";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -261,8 +278,8 @@
 				ENABLE_APP_INTENTS_METADATA_PROCESSING = NO;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Jenkins Buddy/Info.plist";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.caoccao.Jenkins-Buddy";
 				PRODUCT_NAME = "$(TARGET_NAME)";
